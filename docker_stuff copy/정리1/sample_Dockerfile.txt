@@ -1,0 +1,32 @@
+FROM tensorflow/serving
+
+RUN apt-get update && apt-get install -y --no-install-recommends nginx git
+
+# AWS CLI
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get install -y awscli 
+
+RUN aws configure set region ap-northeast-2
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+
+RUN aws s3 cp s3://sagemaker-bucket-cj2/model/model2.tar.gz /var/www/html
+# TIP: adding --recursive is a BAD practice. It will not add original directory,
+# which is, in this case, the file itself.
+
+# Unzip
+RUN tar -xvf /var/www/html/model2.tar.gz
+
+RUN mkdir model2
+RUN mv /00000001 /model2
+
+COPY nginx.conf /etc/nginx/nginx.conf
+
+ENTRYPOINT service nginx start | tensorflow_model_server --rest_api_port=8501 \
+  --model_name=half_plus_three \
+  --model_base_path=/model2
+# ??? Latest(half_plus_three), otherwise will get an error.
+
+# OUTPUT:
+# {"predictions": [[[-15.4804869, -24.1950378, -29.6348152, -29.769352, -27.1416473, -25.5898876, -25.8102512, -28.0569248, -28.2105637, -28.1918392, -27.9692974, -27.9142666, -27.2957497, -27.8690872, -28.558073, -27.3269, -27.3798065], 
+#                   [-25.0822754, -26.9999542, -30.3719139, -30.5484905, -26.811039, -18.8830624, -24.973444, -29.0582027, -28.6967049, -27.8556423, -27.8034821, -27.0916958, -27.4764214, -23.2975903, -28.5081234, -27.1044693, -27.8526649]

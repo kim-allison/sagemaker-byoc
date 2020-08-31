@@ -1,0 +1,29 @@
+[PREPROCESSING]
+ML models expect data in a predefined format
+-> raw data must be cleaned and formatted
+
+1. Amazon built-in Scikit-learn library: preprocess input
+(using the Amazon SageMaker Inference Pipeline < pass raw input directly to SageMaker)
+-Use 'data transformers' > process data into format required by the ML models
+-> create a pipeline that combines the data processing and model predicion steps
+(Amazon SageMaker Inference Pipelines: raw data > endpoint (preprocessed, prediction))
+
+-Container that preprocesses data > model
+: Python scipt imported for both training and prediction
+1) Training < main method as the entry point
+-> parses arguments, reads raw dataset from S3
+
+#####################
+
+*entry_point (inferece.py) << model에 포함됨
+*Lambda << serverless framework을 위해: 만약 Lambda에 whole application을 올린다면 이건 불가능
+
+-> A. entry_point+model (preprocessing을 model에서 해주니까 Lambda에서 entire application deploy 가능)
+AND (chalice 같은 deploy 방식) API Gateway를 directly 쓰지 않는 Lambda에 application을 올린다.
+
+-> B. model (preprocessing을 model 밖에서 해줘야 함)
+AND Lambda (parsing-pre and post processing만을 위해서)+API Gateway (Flask을 이용하지 않는 API Gateway의 resources를 이용하여) 
+
+[inferece_temp.py]
+test1200611_bert-BiLSTM-crf200305_pytorch-bert-crf-ner-master
+test1/200611_bert-BiLSTM-crf/200305_pytorch-bert-crf-ner-master

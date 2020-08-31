@@ -1,0 +1,25 @@
+events {
+    # determines how many requests can simultaneously be served
+    # https://www.digitalocean.com/community/tutorials/how-to-optimize-nginx-configuration
+    # for more information
+    worker_connections 2048; # https://serverfault.com/questions/787919/optimal-value-for-nginx-worker-connections
+
+}
+
+http {
+  server {
+    # configures the server to listen to the port 8080
+    listen 8080 deferred; # https://stackoverflow.com/questions/8449058/what-does-the-deferred-option-mean-in-nginxs-listen-directive
+                          # TCP_DEFER_ACCEPT > help boost performance by reducing the amount of perlimiary formalities that happen between the server and the client
+                          # (? Linuz-only ?s)
+    # redirects requests from SageMaker to TF Serving
+    location /invocations {
+      proxy_pass http://localhost:8501/v1/models/half_plus_three:predict;
+    }
+
+    # Used my SageMaker to confirm if server is alive.
+    location /ping {
+      return 200 "OK";
+    }
+  }
+}
